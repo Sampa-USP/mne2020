@@ -1,0 +1,22 @@
+xyzfile bulk_water.xyz
+xlo xhi 0.00 20.00
+ylo yhi 0.00 20.00
+zlo zhi 0.00 20.00
+molecules types 1
+file1 water.top
+molecules 267
+atoms 3
+bonds 2
+angles 1
+dihedrals 0
+impropers 0
+atom types 2
+bond types 1
+angle types 1
+dihedral types 0
+improper types 0
+line1 33
+line2 39
+line3 44
+line4 0
+line5 0

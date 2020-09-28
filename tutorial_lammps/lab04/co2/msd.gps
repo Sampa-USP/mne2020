@@ -1,0 +1,18 @@
+set term pdfcairo
+set output 'msd.pdf'
+
+set xlabel 'Time (ps)' font "times,16"
+set ylabel 'MSD (A^2)' font "times,16"
+set key left top box
+
+f(x)=a1*x+b1
+g(x)=a2*x+b2
+fit f(x) 'msd-c.dat' using ($1*0.001):2 via a1,b1
+fit g(x) 'msd-o.dat' using ($1*0.001):2 via a2,b2
+set label 1 sprintf("D_C = %3.4f * 10^{-5} cm^2/s",a1) at 15,50000 font "times,16"
+set label 2 sprintf("D_O = %3.4f * 10^{-5} cm^2/s",a2) at 15,40000 font "times,16"
+
+plot 'msd-c.dat' using ($1*0.0010):2 with linespoints linewidth 2 linecolor rgb 'black' title 'Mean Squared Displacement Carbon'  ,\
+     'msd-o.dat' using ($1*0.0010):2 with linespoints linewidth 2 linecolor rgb 'red'   title 'Mean Squared Displacement Oxygen'  ,\
+     f(x) linetype 2 linecolor rgb 'black' title 'Linear fit of MSD-C',\
+     g(x) linetype 2 linecolor rgb 'red'   title 'Linear fit of MSD-O'

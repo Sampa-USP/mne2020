@@ -1,0 +1,145 @@
+# sistema
+#=================================================================================
+units           real   # <- sistema de unidades reais 
+atom_style      full   # <- define os atributos de cada atomo 
+boundary        p p p  # <- condições periodicas de contorno em 3D 
+#=================================================================================
+
+
+#=================================================================================
+variable        f       equal 200.0        # pressao (atm)
+variable        T       equal 373.15       # temperatura (K)
+variable        V       equal vol          # volume
+variable        dt      equal 1.0          # passo de tempo (fs)
+
+# para o calculo da viscosidade
+variable        p       equal 6000          # correlation length
+variable        s       equal 4             # sample interval
+variable        d       equal $p*$s         # dump interval
+# convert from LAMMPS real units to SI
+variable        kB      equal 1.3806504e-23    # [J/K/ Boltzmann
+variable        atm2Pa  equal 101325.0
+variable        A2m     equal 1.0e-10
+variable        fs2s    equal 1.0e-15
+variable        convert equal ${atm2Pa}*${atm2Pa}*${fs2s}*${A2m}*${A2m}*${A2m}
+#=================================================================================
+
+
+# campo de força
+# ================================================================================
+pair_style lj/cut/coul/long 10.0 # <- tipo de interação de lennard-jones + coulomb 
+bond_style     harmonic          # <- ligação harmônica entre pares de atômos
+angle_style    harmonic          # <- ligação angular harmônica entre pares de atômos
+
+pair_modify tail yes             # <- aplicar correções na energia e pressão deevido ao truncamento das interações de longo alcançe  
+pair_modify mix arithmetic       # <- aplicar as regras de Lorentz para as interações entre diferentes tipos de atômos
+
+kspace_style pppm 0.0001         # <- aplicar o método particle-particle-particle-mesh para descrever as interações de coulomb 
+                                 #    de forma eficiente como se trata-se de um campo médio
+#===================================================================================
+#
+
+# leer configuração
+# ============================================================================
+read_data      co2.top          # <- leer o arquivo com as informações da topologia do sistema 
+replicate      6 6 6   
+neighbor       2 bin            # <- distância adicional na construção da lista de vizinhos de verlet 
+
+group carbon type 1
+group oxygen type 2
+#==============================================================================
+
+
+# inicializar velocidades
+# ==============================================================================
+velocity all create 373.15 4928459 rot yes dist gaussian # <- inicializa as velocidades do sistema segundo
+run             0                        
+velocity        all       scale  373.15 
+
+timestep         1   # 1 fs
+#================================================================================
+
+
+# fase de equilibração
+# ================================================================================
+thermo_style custom step temp ke pe etotal press density vol lx density spcpu # <- selecionar a informação termodinâmica desejada entre outras
+thermo 1000
+
+dump equil all custom 2000 dump-equil.lammpstrj id type x y z
+dump_modify equil sort id
+
+fix equil all rigid/nvt/small molecule temp 373.15 373.15 50    
+run 10000               
+unfix equil
+
+timestep          1   # 1fs 
+
+compute myTemp all temp
+compute myKE all ke
+compute myPE all pe
+compute myPress all pressure thermo_temp
+fix thermo1 all ave/time 1 1000 1000 c_myTemp    file thermo-equil-temp.dat
+fix thermo2 all ave/time 1 1000 1000 c_myKE      file thermo-equil-ke.dat
+fix thermo3 all ave/time 1 1000 1000 c_myPE      file thermo-equil-pe.dat
+fix thermo4 all ave/time 1 1000 1000 c_myPress   file thermo-equil-press.dat
+
+fix npt all rigid/npt/small molecule temp 373.15 373.15 50 iso 200.0 200.0 500
+run 200000
+undump equil
+
+write_data topo_equil.top
+unfix thermo1
+unfix thermo2
+unfix thermo3
+unfix thermo4
+#=================================================================================
+
+
+#fase de produção
+#==================================================================================
+reset_timestep 0
+dump production all custom 20000 dump-production.lammpstrj id type x y z
+dump_modify production sort id
+
+compute gdr_cc all rdf 400 1 1
+compute gdr_co all rdf 400 1 2
+fix ave_gdr_cc all ave/time 10 10000 450000 c_gdr_cc[*] overwrite file gdr-cc.dat mode vector ave running
+fix ave_gdr_co all ave/time 10 10000 450000 c_gdr_co[*] overwrite file gdr-co.dat mode vector ave running
+compute msd_c carbon   msd com yes
+compute msd_o oxygen   msd com yes
+fix ave_msd_c all ave/time 1 25000 25000 c_msd_c[4] file msd-c.dat mode scalar  
+fix ave_msd_o all ave/time 1 25000 25000 c_msd_o[4] file msd-o.dat mode scalar
+fix thermo1 all ave/time 1 1000 1000 c_myTemp    file thermo-prod-temp.dat
+fix thermo2 all ave/time 1 1000 1000 c_myKE      file thermo-prod-ke.dat
+fix thermo3 all ave/time 1 1000 1000 c_myPE      file thermo-prod-pe.dat
+fix thermo4 all ave/time 1 1000 1000 c_myPress   file thermo-prod-press.dat
+
+# Viscosity 
+#--------------------------------------------------
+variable        pxy     equal    pxy
+variable        pxz     equal    pxz
+variable        pyz     equal    pyz
+variable        V       equal    vol
+fix             SS      all      ave/correlate  $s $p $d &
+                v_pxy   v_pxz    v_pyz type auto file S0St.dat ave running
+variable        scale   equal    ${convert}/(${kB}*$T)*$V*$s*${dt}
+variable        v11     equal    trap(f_SS[3])*${scale}
+variable        v22     equal    trap(f_SS[4])*${scale}
+variable        v33     equal    trap(f_SS[5])*${scale}
+
+variable        visc    equal    (v_v11+v_v22+v_v33)/3.0
+#------------------------------------------------------
+ 
+  
+thermo          $d
+thermo_style    custom step temp press spcpu  density  v_visc 
+run 2400000
+write_data topo_final.top
+#=================================================================================
+
+
+# Viscosidade Final
+#-------------------------------------------------------
+variable        v equal (v_v11+v_v22+v_v33)/3.0
+print           "Average viscosity: $v Pa.s"
+#--------------------------------------------------------

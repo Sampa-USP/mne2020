@@ -1,0 +1,9 @@
+tolerance 2.0          # separação entre as moléculas (tolerância)
+filetype xyz
+output bulk_water.xyz  # arquivo de saída
+ 
+structure water.xyz    # arquivo com coordenadas de uma única molecula
+  number 267           # numero de moléculas 
+  inside box   0.00  0.00  0.00 20.00 20.00 20.00   # posições das paredes da caixa (x0 y0 z0 x1 y1 z1)
+end structure
+

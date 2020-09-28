@@ -1,0 +1,13 @@
+#
+# bulk fluid
+#
+
+tolerance 2.0
+filetype xyz
+output bulk_heptane.xyz
+
+structure heptane.xyz 
+  number 38
+  inside box   0.00  0.00  0.00 21.00 21.00 21.00
+end structure
+

@@ -1,0 +1,39 @@
+xyzfile water_heptane.xyz
+xlo xhi 0.00 21.00
+ylo yhi 0.00 21.00
+zlo zhi 0.00 84.00
+molecules types 2
+file1 water.top
+molecules 619
+atoms 3
+bonds 2
+angles 1
+dihedrals 0
+impropers 0
+atom types 2
+bond types 1
+angle types 1
+dihedral types 0
+improper types 0
+line1 33
+line2 39
+line3 44
+line4 0
+line5 0
+file2 heptane.top
+molecules 76
+atoms 23
+bonds 22
+angles 42
+dihedrals 66
+impropers 0
+atom types 4
+bond types 4
+angle types 6
+dihedral types 10
+improper types 0
+line1 60
+line2 86
+line3 111
+line4 156
+line5 0

@@ -1,0 +1,48 @@
+# sistema
+
+units           real   # <- sistema de unidades             
+atom_style      full   # <- define os atributos de cada átomo 
+boundary        p p p  # <- condições periódicas de contorno em 3D 
+
+# campo de força
+pair_style lj/cut/coul/long 10  # <- tipo de interação: lennard-jones + coulomb 
+bond_style     harmonic         # <- ligação harmônica entre pares de átomos
+angle_style    harmonic         # <- ligação angular harmônica entre pares de átomos
+
+pair_modify tail yes            # <- aplicar correções na energia e pressão devido ao truncamento das interações de longo alcance  
+pair_modify mix arithmetic      # <- aplicar as regras de mixtura para as interações entre diferentes tipos de átomos
+
+kspace_style pppm 0.0001        # <- aplicar o método particle-particle-particle-mesh para descrever as interações de coulomb 
+                                #    de forma eficiente
+
+# leer configuração
+read_data      bulk_water.top   # <- ler o arquivo com as informações da topologia do sistema 
+neighbor       2 bin            # <- distância adicional na construção da lista de vizinhos de verlet 
+
+minimize 1.0e-4 1.0e-6 10000 100000 # <- minimizar as configuração (opcional), usado somente quando partimos de uma 
+                                    #    configuração arranajda aleatoriamente, no caso de usar uma configuração 
+                                    #    pre-equilibrada isso não é preciso
+# incializar velocidades
+velocity all create 300.0 4928459 rot yes dist gaussian # <- inicializa as velocidades do sistema segundo
+                                                        #    a distribuição de Boltzmann a 300 K
+
+timestep        0.5             # <- tempo de integração de dt=0.5fs (depende do sistema de unidades)
+
+# selecionar informação termodinâmica
+thermo_style custom step temp ke pe etotal press vol density # <- selecionar a informação termodinâmica desejada
+thermo 100                                                   # <- imprimir a cada 100 pasos 
+
+# iniciando a dinâmica molecular
+
+# fase de equilibração
+fix equilibration_nve all nve    # <- ensemble microcanônico (NVE)
+run 10000                        # <- tempo de simulação de 1000.dt (0.5ps)
+unfix equilibration_nve          # <- deletar o ensemble nve
+# fase de produção
+fix production_nve all nve       # <- ensemble microcanônico (NVE)
+dump positions all custom 100 bulk_water.lammpstrj id type mol x y z  # <- salvar configurações atômicas a cada 100 pasos 
+dump_modify positions sort id    # <- salvar as configurações de forma ordenada, opcional
+run 20000                        # <- tempo de simulação de 1ps 
+unfix production_nve             # <- deletar o ensemble nve
+
+write_data prod_bulk_water.top   # <- salvar as informações da topologia do sistema equilibrado

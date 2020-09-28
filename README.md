@@ -3,9 +3,7 @@
 
 Bem-vindo ao repositório da disciplina PME-5429. Links para as aulas podem ser encontrados na lista a seguir:
 
-1. [Lab 1](./lab1) (...)
-2. [Lab 2](./lab2) (...)
-
+1. [Tutorial LAMMPS](./tutorial_lammps) - acesse o arquivo [main.pdf](./tutorial_lammps/main.pdf) para seguir o roteiro de quatro aulas de laboratório utilizando o LAMMPS, incluindo simulações com (1) água, (2) heptano, (3) interface água-heptano e (4) dióxido de carbono.
 
 Para obter todos os materiais deste repositório, digitar no terminal:
 

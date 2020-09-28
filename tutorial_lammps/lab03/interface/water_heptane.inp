@@ -1,0 +1,16 @@
+# interface water heptane
+
+tolerance 2.0
+filetype xyz
+output water_heptane.xyz # arquivo de saida  
+
+structure water.xyz       # agua prenche a metade esquerda da caixa
+  number 619              
+  inside box   0.00  0.00  0.00 21.00 21.00 42.00  
+end structure
+
+structure heptane.xyz     # heptano preenche a metade direita da caixa
+  number  76              
+  inside box   0.00  0.00 42.00 21.00 21.00 84.00  
+end structure
+
