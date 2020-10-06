@@ -13,12 +13,12 @@ Para atualizar os arquivos, entre no diretório `mne2020` e execute:
 
 `git pull`
 
-2.  [Instalações Importantes na máquina virtual]
+2.  ### Instalações Importantes na máquina virtual
 
 `sudo apt-get install gedit`
 `sudo apt-get install libgfortran3`
 
-3. [Para converter um arquivo txt (ex: log.lammps_nve)  para o formato csv utilize o script:]
+3. ### Para converter um arquivo txt (ex: log.lammps_nve)  para o formato csv utilize o script:
 
 `column -t log.lammps_nve | sed -e 's/\s\+/,/g' > data.csv`
 
